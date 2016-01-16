@@ -1,0 +1,367 @@
+/**
+ * Calculator class
+ *
+ * A calculator applet
+ *
+ * @author Danny Cheng
+ * @date 12/10/14
+ *
+ */
+import java.applet.*;
+import java.awt.*;
+
+public class Calculator extends Applet
+{
+    // GUI
+    Label lMemoryStatus, lBrandName, lNull;
+    Button bDecim, bEqual, bAdd, bMin, bMulti, bDiv, bCA, bCE,
+	bDEL, bPM, bMemAdd, bMemDel, bMemRec, bMemCls;
+    Button[] bNum = new Button [10];
+    TextField tDisplay;
+
+    // Variables
+    String displayNum = "", operator;
+    double memory, temp = 0, total, n1, n2;
+    int operatorCount = 0;
+    boolean lastOp = false;
+
+    // Color
+    Color chillGrey = new Color (200, 220, 240);
+    Color basicGrey = new Color (205, 201, 201);
+
+    public void init ()
+    {
+	lBrandName = new Label ("Chengulator");
+	lBrandName.setAlignment (1);
+	lBrandName.setFont (new Font ("Candara", 3, 24));
+
+	lNull = new Label (" ");
+
+	tDisplay = new TextField (10);
+	tDisplay.setFont (new Font ("Consolas", 1, 24));
+
+	lMemoryStatus = new Label (" ");
+
+	// Number buttons
+	for (int i = 0 ; i < 10 ; i++)
+	{
+	    bNum [i] = new Button (String.valueOf (i));
+	} // End for
+
+	bDecim = new Button (" . ");
+	bEqual = new Button (" = ");
+	bAdd = new Button (" + ");
+	bMin = new Button (" - ");
+	bMulti = new Button (" x ");
+	bDiv = new Button (String.valueOf ((char) 247));
+	bCA = new Button (" CA ");
+	bCE = new Button (" CE ");
+	bDEL = new Button (" DEL  ");
+	bPM = new Button (String.valueOf ((char) 177));
+	bMemAdd = new Button (" M+ ");
+	bMemDel = new Button (" M- ");
+	bMemRec = new Button (" MR ");
+	bMemCls = new Button (" MC ");
+
+	// set canvas layout to BorderLayout
+	setLayout (new BorderLayout ());
+
+	// create north panel
+	Panel north = new Panel ();
+
+	// layout north panel as BorderLayout
+	north.setLayout (new BorderLayout ());
+
+	// add fields to north panel
+	north.add ("North", lBrandName);
+	north.add ("Center", tDisplay);
+	north.add ("West", lNull);
+	north.add ("East", lMemoryStatus);
+
+	// create south panel
+	Panel south = new Panel ();
+
+
+	// Layout south panel as GridLayout
+	south.setLayout (new GridLayout (6, 4, 5, 5));
+	south.setFont (new Font ("Consolas", 1, 24));
+
+	// Add buttons to south panel grid
+
+	// Row 1
+	south.add (bMemAdd);
+	south.add (bMemDel);
+	south.add (bMemRec);
+	south.add (bMemCls);
+
+	// Row 2
+	south.add (bPM);
+	south.add (bDEL);
+	south.add (bCE);
+	south.add (bCA);
+
+	// Row 3
+	south.add (bNum [7]);
+	south.add (bNum [8]);
+	south.add (bNum [9]);
+	south.add (bDiv);
+
+	// Row 4
+	south.add (bNum [4]);
+	south.add (bNum [5]);
+	south.add (bNum [6]);
+	south.add (bMulti);
+
+	// Row 5
+	south.add (bNum [1]);
+	south.add (bNum [2]);
+	south.add (bNum [3]);
+	south.add (bMin);
+
+	// Row 6
+	south.add (bNum [0]);
+	south.add (bDecim);
+	south.add (bEqual);
+	south.add (bAdd);
+
+
+	// Set colors
+	setBackground (chillGrey);
+	bAdd.setBackground (basicGrey);
+	bMin.setBackground (basicGrey);
+	bMulti.setBackground (basicGrey);
+	bDiv.setBackground (basicGrey);
+
+	// Add north and south panels to canvas
+	add ("North", north);
+	add ("South", south);
+    }
+
+
+    /**
+    * Calls a method based on the button that user clicks
+    *
+    *
+    * @param e The event
+    * @param o The object
+    */
+    public boolean action (Event e, Object o)
+    {
+	// Numbers
+	for (int i = 0 ; i < 10 ; i++)
+	{
+	    if (e.target == bNum [i] && lastOp == false)
+	    {
+		displayNum += (i);
+	    } // End if
+	    else if (e.target == bNum [i] && lastOp == true)
+	    {
+		displayNum = String.valueOf (i);
+		lastOp = false;
+	    }
+
+	} // End for
+
+	// Memory functions
+	if (e.target == bMemAdd)
+	{
+	    memory += (Double.parseDouble (displayNum));
+	    lMemoryStatus.setText ("M");
+	} // End if
+
+	else if (e.target == bMemDel)
+	{
+	    memory -= (Double.parseDouble (displayNum));
+
+	    if (memory == 0)
+	    {
+		lMemoryStatus.setText (" ");
+	    }
+	} // End else if
+
+	else if (e.target == bMemRec)
+	{
+	    displayNum += (memory);
+
+	} // End else if
+
+	else if (e.target == bMemCls)
+	{
+	    memory = 0;
+	    lMemoryStatus.setText (" ");
+	} // End else if
+
+	else if (e.target == bDecim)
+	{
+	    if (displayNum.indexOf (".") == -1)
+	    {
+		displayNum += ".";
+	    }
+	}
+	else if (e.target == bPM)
+	{
+	    temp = (Double.parseDouble (displayNum));
+	    IntConv (temp);
+	} // End else if
+
+	// Clearing functions
+	else if (e.target == bCA)
+	{
+	    displayNum = "";
+	    temp = 0;
+	    operatorCount = 0;
+	    ResetColors ();
+	} // End else if
+
+	else if (e.target == bCE)
+	{
+	    displayNum = "";
+	} // End else if
+
+	else if (e.target == bDEL)
+	{
+
+	    // Prevents the string index from going out of range (-1)
+	    if (!displayNum.equals (""))
+	    {
+		displayNum = displayNum.substring (0, displayNum.length () - 1);
+	    } //End if
+
+	} // End else if
+
+
+
+
+
+
+
+	//Operators
+	else if (e.target == bAdd)
+	{
+	    bAdd.setBackground (chillGrey);
+	    CallCalc ("+");
+	} // End else if
+	else if (e.target == bMin)
+	{
+	    bMin.setBackground (chillGrey);
+	    CallCalc ("-");
+	} // End else if
+	else if (e.target == bMulti)
+	{
+	    bMulti.setBackground (chillGrey);
+	    CallCalc ("*");
+	} // End else if
+	else if (e.target == bDiv)
+	{
+	    bDiv.setBackground (chillGrey);
+	    CallCalc (String.valueOf ((char) 247));
+	}
+	else if (e.target == bEqual)
+	{
+	    n2 = Double.parseDouble (displayNum);
+	    n1 = Calc (n1, n2, operator);
+	    displayNum = String.valueOf (n1);
+
+	    if (n1 % 1 == 0)
+	    {
+		displayNum = (String.valueOf ((int) n1));
+	    }
+	    ResetColors ();
+	}
+	tDisplay.setText (displayNum);
+	return true;
+    } // boolean action (Event, Object)
+
+
+
+    /**
+    * Performs the calculations
+    *
+    *
+    * @param n1 First number
+    * @param n2 Second number
+    * @param operator Math operator
+    *
+    * @return double
+    */
+    public double Calc (double n1, double n2, String operator)
+    {
+	double total = 0;
+	if (operator.equals ("+"))
+	{
+	    total = n1 + n2;
+	}
+	else if (operator.equals ("-"))
+	{
+	    total = n1 - n2;
+	}
+	else if (operator.equals ("*"))
+	{
+	    total = n1 * n2;
+	}
+	else if (operator.equals (String.valueOf ((char) 247)))
+	{
+	    total = n1 / n2;
+	}
+	lastOp = true;
+	return total;
+    }
+
+
+    public void ResetColors ()
+    {
+	bAdd.setBackground (basicGrey);
+	bMin.setBackground (basicGrey);
+	bMulti.setBackground (basicGrey);
+	bDiv.setBackground (basicGrey);
+    }
+
+
+    /**
+    * A method used to call the calculations
+    * @param initOp The initial math operator
+    */
+    public void CallCalc (String initOp)
+    {
+	// If the last button was an operator then do nothing
+	if (lastOp == false)
+	{
+	    operatorCount += 1;
+	    // If there's no operator
+	    if (operatorCount == 1)
+	    {
+		// Set n1 to the number on the display
+		n1 = (Double.parseDouble (displayNum));
+		displayNum = "";
+		operator = initOp;
+	    }
+
+	    // If there is an operator
+	    else if (operatorCount > 1)
+	    {
+		n2 = Double.parseDouble (displayNum);
+		n1 = Calc (n1, n2, operator);
+		displayNum = String.valueOf (n1);
+		operator = initOp;
+		IntConv (n1);
+	    }
+
+	} // void CallCalc (String)
+    } // double Calc (double, double, String)
+
+
+    /**
+    *Converts the number to a integer and removes the decimal if .0
+    *
+    *@param double The number to convert
+    */
+    public void IntConv (double number)
+    {
+	if (number % 1 == 0)
+	{
+	    displayNum = (String.valueOf ((int) number));
+	}
+    } //void IntConv (double)
+} // Calculator class
+
+
